@@ -1,0 +1,28 @@
+{
+  "name": "react-faststart",
+  "version": "1.0.0",
+  "description": "A CLI tool for quick React project setup with Vite, Tailwind CSS, and seamless configuration.",
+  "main": "./index.js",
+  "type": "module",
+  "bin": {
+    "react-faststart": "./index.js"
+  },
+  "scripts": {
+    "dev": "node ./index.js"
+  },
+  "keywords": [
+    "react-faststart",
+    "create-vite-tailwind",
+    "react",
+    "vite",
+    "tailwindcss",
+    "create-react-app",
+    "create-vite-react"
+  ],
+  "author": "Sankalp Haritash",
+  "license": "ISC",
+  "dependencies": {
+    "execa": "^9.5.1",
+    "fs": "^0.0.1-security"
+  }
+}
