@@ -38,7 +38,7 @@ const run = async () => {
     const projectDir = path.resolve(__dirname, projectName);
 
     // Step 2: Check if the directory already exists
-    if (fs.existsSync(projectDir)) {
+    if (fs.existsSync(projectName)) {
       const { overwrite } = await inquirer.prompt([
         {
           type: "confirm",
@@ -77,31 +77,26 @@ const run = async () => {
       "npx",
       ["create-vite@latest", projectName, "--template", templateChoice],
       { stdio: "inherit" }
-    )
-      .then(() => console.log("Project created successfully!"))
-      .catch((err) => {
-        console.log("Error creating project: ", err);
-        return;
-      });
+    );
+
+    console.log("Project created successfully!");
+
+    await execa("cd", [projectName], { stdio: "inherit" });
 
     // Step 5: Install dependencies and configure the project
     console.log("Installing Tailwind CSS...");
     await execa(
       "npm",
       ["install", "-D", "tailwindcss", "postcss", "autoprefixer"],
-      { stdio: "inherit", cwd: projectName }
-    )
-      .then(() => console.log("Dependencies installed successfully!"))
-      .catch((err) => {
-        console.log("Error installing dependencies: ", err);
-        return;
-      });
+      { stdio: "inherit" }
+    );
+
+    console.log("Dependencies installed successfully!");
 
     // Step 6: Initialize Tailwind CSS configuration
     console.log("Initializing Tailwind configuration...");
     await execa("npx", ["tailwindcss", "init", "-p"], {
       stdio: "inherit",
-      cwd: projectName,
     });
 
     // Step 7: Update `tailwind.config.js` file
