@@ -89,7 +89,7 @@ const run = async () => {
     await execa(
       "npm",
       ["install", "-D", "tailwindcss", "postcss", "autoprefixer"],
-      { stdio: "inherit", cwd: projectDir }
+      { stdio: "inherit", cwd: projectName }
     )
       .then(() => console.log("Dependencies installed successfully!"))
       .catch((err) => {
@@ -101,12 +101,12 @@ const run = async () => {
     console.log("Initializing Tailwind configuration...");
     await execa("npx", ["tailwindcss", "init", "-p"], {
       stdio: "inherit",
-      cwd: projectDir,
+      cwd: projectName,
     });
 
     // Step 7: Update `tailwind.config.js` file
     console.log("Configuring Tailwind...");
-    const tailwindConfigPath = path.resolve(projectDir, "tailwind.config.js");
+    const tailwindConfigPath = path.resolve(projectName, "tailwind.config.js");
     const tailwindConfig = `/** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -123,7 +123,7 @@ export default {
 
     // Step 8: Create and update the `src/index.css` file
     console.log("Setting up Tailwind styles...");
-    const srcDir = path.resolve(projectDir, "src");
+    const srcDir = path.resolve(projectName, "src");
     await fs.promises.mkdir(srcDir, { recursive: true });
 
     const indexCSSPath = path.resolve(srcDir, "index.css");
