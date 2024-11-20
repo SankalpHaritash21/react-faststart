@@ -1,6 +1,6 @@
 {
   "name": "react-faststart",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "A CLI tool for quick React project setup with Vite, Tailwind CSS, and seamless configuration.",
   "main": "./index.js",
   "type": "module",
@@ -23,6 +23,7 @@
   "license": "ISC",
   "dependencies": {
     "execa": "^9.5.1",
-    "fs": "^0.0.1-security"
+    "fs": "^0.0.1-security",
+    "inquirer": "^12.1.0"
   }
 }

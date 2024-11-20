@@ -3,36 +3,53 @@
 import { execa } from "execa";
 import fs from "fs";
 import path from "path";
-import readline from "readline";
 import { fileURLToPath } from "url";
+import inquirer from "inquirer";
 
-// Set up readline interface for user input
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
-
-// Function to prompt user for input
-const askQuestion = (query) => {
-  return new Promise((resolve) => rl.question(query, resolve));
+// Validate the project name based on security requirements
+const validateProjectName = (name) => {
+  const validName = /^[a-z][a-z0-9_]*$/.test(name);
+  if (!validName) {
+    console.log(
+      "Error: Project name must start with a letter and can only contain lowercase letters, numbers, and underscores."
+    );
+    return false;
+  }
+  return true;
 };
 
 const run = async () => {
   try {
     // Step 1: Get project name from the user
-    const projectName = await askQuestion("Enter the name of your project: ");
+    const { projectNameInput } = await inquirer.prompt([
+      {
+        type: "input",
+        name: "projectNameInput",
+        message: "Enter the name of your project:",
+        validate: (input) =>
+          validateProjectName(input) || "Invalid project name.",
+      },
+    ]);
+
+    let projectName = projectNameInput.toLowerCase().replace(/\s+/g, "_");
+
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     const projectDir = path.resolve(__dirname, projectName);
 
     // Step 2: Check if the directory already exists
     if (fs.existsSync(projectDir)) {
-      const overwrite = await askQuestion(
-        `Directory '${projectName}' already exists. Overwrite? (y/n): `
-      );
-      if (overwrite.toLowerCase() !== "y") {
+      const { overwrite } = await inquirer.prompt([
+        {
+          type: "confirm",
+          name: "overwrite",
+          message: `Directory '${projectName}' already exists. Overwrite?`,
+          default: false,
+        },
+      ]);
+
+      if (!overwrite) {
         console.log("Operation cancelled.");
-        rl.close();
         return;
       }
 
@@ -41,41 +58,53 @@ const run = async () => {
     }
 
     // Step 3: Choose between JavaScript and TypeScript templates
-    const templateChoice = await askQuestion(
-      "Choose a template (react or react-ts): "
-    );
-    const template = ["react", "react-ts"].includes(templateChoice)
-      ? templateChoice
-      : "react"; // Default to React (JavaScript)
+    const { templateChoice } = await inquirer.prompt([
+      {
+        type: "list",
+        name: "templateChoice",
+        message: "Choose a template:",
+        choices: ["react", "react-ts"],
+        default: "react",
+      },
+    ]);
 
     console.log(
-      `Creating Vite project '${projectName}' with template '${template}'...`
+      `Creating Vite project '${projectName}' with template '${templateChoice}'...`
     );
 
     // Step 4: Create a new Vite project
     await execa(
       "npx",
-      ["create-vite@latest", projectName, "--template", template],
+      ["create-vite@latest", projectName, "--template", templateChoice],
       { stdio: "inherit" }
-    );
+    )
+      .then(() => console.log("Project created successfully!"))
+      .catch((err) => {
+        console.log("Error creating project: ", err);
+        return;
+      });
 
-    // Step 5: Change directory into the newly created project
-    process.chdir(projectDir);
-    console.log("Vite project created successfully.");
-
-    // Step 6: Install Tailwind CSS and dependencies
+    // Step 5: Install dependencies and configure the project
     console.log("Installing Tailwind CSS...");
     await execa(
       "npm",
       ["install", "-D", "tailwindcss", "postcss", "autoprefixer"],
-      { stdio: "inherit" }
-    );
+      { stdio: "inherit", cwd: projectDir }
+    )
+      .then(() => console.log("Dependencies installed successfully!"))
+      .catch((err) => {
+        console.log("Error installing dependencies: ", err);
+        return;
+      });
 
-    // Step 7: Initialize Tailwind CSS configuration
+    // Step 6: Initialize Tailwind CSS configuration
     console.log("Initializing Tailwind configuration...");
-    await execa("npx", ["tailwindcss", "init", "-p"], { stdio: "inherit" });
+    await execa("npx", ["tailwindcss", "init", "-p"], {
+      stdio: "inherit",
+      cwd: projectDir,
+    });
 
-    // Step 8: Update `tailwind.config.js` file
+    // Step 7: Update `tailwind.config.js` file
     console.log("Configuring Tailwind...");
     const tailwindConfigPath = path.resolve(projectDir, "tailwind.config.js");
     const tailwindConfig = `/** @type {import('tailwindcss').Config} */
@@ -92,10 +121,10 @@ export default {
 `;
     await fs.promises.writeFile(tailwindConfigPath, tailwindConfig);
 
-    // Step 9: Create and update the `src/index.css` file
+    // Step 8: Create and update the `src/index.css` file
     console.log("Setting up Tailwind styles...");
     const srcDir = path.resolve(projectDir, "src");
-    await fs.promises.mkdir(srcDir, { recursive: true }); // Ensure the `src` directory exists
+    await fs.promises.mkdir(srcDir, { recursive: true });
 
     const indexCSSPath = path.resolve(srcDir, "index.css");
     const tailwindDirectives = `@tailwind base;
@@ -104,23 +133,21 @@ export default {
 `;
     await fs.promises.writeFile(indexCSSPath, tailwindDirectives);
 
-    // Step 10: Remove `App.css` and create the appropriate `App` file
+    // Step 9: Remove `App.css` and create the appropriate `App` file
     const appCssPath = path.resolve(srcDir, "App.css");
     if (fs.existsSync(appCssPath)) {
       console.log("Deleting App.css...");
-      await fs.promises.unlink(appCssPath); // Remove App.css
+      await fs.promises.unlink(appCssPath);
     }
 
-    // Step 11: Reset `App.jsx` or `App.tsx` based on the template
-    let appFilePath;
-    let appFileContent;
+    // Step 10: Reset `App.jsx` or `App.tsx` based on the template
+    const appFilePath = path.resolve(
+      srcDir,
+      templateChoice === "react-ts" ? "App.tsx" : "App.jsx"
+    );
+    const appFileContent = `import React from 'react';
 
-    if (template === "react-ts") {
-      // For TypeScript, create `App.tsx`
-      appFilePath = path.resolve(srcDir, "App.tsx");
-      appFileContent = `import React from 'react';
-
-const App: React.FC = () => {
+const App${templateChoice === "react-ts" ? ": React.FC" : ""} = () => {
   return (
     <div>App</div>
   );
@@ -128,27 +155,13 @@ const App: React.FC = () => {
 
 export default App;
 `;
-    } else {
-      // For JavaScript, create `App.jsx`
-      appFilePath = path.resolve(srcDir, "App.jsx");
-      appFileContent = `import React from 'react';
-
-const App = () => {
-  return (
-    <div>App</div>
-  );
-}
-
-export default App;
-`;
-    }
 
     console.log(
-      `Resetting ${template === "react-ts" ? "App.tsx" : "App.jsx"}...`
+      `Resetting ${templateChoice === "react-ts" ? "App.tsx" : "App.jsx"}...`
     );
-    await fs.promises.writeFile(appFilePath, appFileContent); // Create the appropriate App file
+    await fs.promises.writeFile(appFilePath, appFileContent);
 
-    // Step 12: Final instructions to the user
+    // Step 11: Final instructions to the user
     console.log(
       "Setup complete! Run the following commands to start your development server:"
     );
@@ -156,8 +169,6 @@ export default App;
     console.log("npm run dev");
   } catch (error) {
     console.error("An error occurred:", error.message);
-  } finally {
-    rl.close();
   }
 };
 
