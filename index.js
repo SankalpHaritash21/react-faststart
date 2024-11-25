@@ -81,7 +81,7 @@ const run = async () => {
 
     console.log("Project created successfully!");
 
-    await execa("cd", [projectName], { stdio: "inherit" });
+    process.chdir(projectName);
 
     // Step 5: Install dependencies and configure the project
     console.log("Installing Tailwind CSS...");
@@ -101,7 +101,7 @@ const run = async () => {
 
     // Step 7: Update `tailwind.config.js` file
     console.log("Configuring Tailwind...");
-    const tailwindConfigPath = path.resolve(projectName, "tailwind.config.js");
+    const tailwindConfigPath = path.resolve("tailwind.config.js");
     const tailwindConfig = `/** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -118,7 +118,7 @@ export default {
 
     // Step 8: Create and update the `src/index.css` file
     console.log("Setting up Tailwind styles...");
-    const srcDir = path.resolve(projectName, "src");
+    const srcDir = path.resolve("src");
     await fs.promises.mkdir(srcDir, { recursive: true });
 
     const indexCSSPath = path.resolve(srcDir, "index.css");
