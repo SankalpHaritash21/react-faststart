@@ -22,9 +22,11 @@
   "author": "Sankalp Haritash",
   "license": "ISC",
   "dependencies": {
+    "@types/react": "^18.3.12",
     "execa": "^9.5.1",
     "fs": "^0.0.1-security",
-    "inquirer": "^12.1.0"
+    "inquirer": "^12.1.0",
+    "react": "^18.3.1"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.20",
