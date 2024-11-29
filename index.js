@@ -99,26 +99,69 @@ export default {
     srcDir,
     templateChoice === "react-ts" ? "App.tsx" : "App.jsx"
   );
-  const appFileContent = `import React from 'react';
+  const appFileContent = `import React, { useState } from 'react';
 
-  const App${templateChoice === "react-ts" ? ": React.FC" : ""} = () => {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-        <header className="text-center">
-          <h1 className="text-5xl font-extrabold mb-4">Welcome to My Tailwind App</h1>
-          <p className="text-lg font-light">A React project styled with Tailwind CSS</p>
-        </header>
-        <main className="mt-8">
-          <a href="https://www.npmjs.com/package/react-faststart" target="_blank" className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-md shadow-lg hover:bg-blue-100 transition">
-            Get Started
-          </a>
-        </main>
-      </div>
-    );
+const App${templateChoice === "react-ts" ? ": React.FC" : ""} = () => {
+  const [darkMode, setDarkMode] = useState(true);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
   };
-  
-  export default App;
-  `;
+
+  return (
+    <div
+      className={\`min-h-screen flex flex-col items-center justify-center \${
+        darkMode ? "bg-gray-900 text-gray-100" : "bg-gray-100 text-gray-900"
+      } transition-colors duration-500\`}
+    >
+      <header className="text-center mb-8">
+        <h1 className="text-5xl font-extrabold mb-4">
+          Welcome to My {darkMode ? "Dark" : "Light"} Tailwind App
+        </h1>
+        <p className="text-lg font-light">
+          Effortlessly switch between modes and explore the possibilities!
+        </p>
+      </header>
+      <main className="flex flex-col items-center gap-6">
+        <button
+          onClick={toggleDarkMode}
+          className={\`px-6 py-3 text-lg font-semibold rounded-full shadow-lg transition-transform duration-300 hover:scale-105 \${
+            darkMode
+              ? "bg-gray-100 text-gray-900 hover:bg-gray-200"
+              : "bg-gray-900 text-gray-100 hover:bg-gray-800"
+          }\`}
+        >
+          Toggle {darkMode ? "Light" : "Dark"} Mode
+        </button>
+        <a
+          href="https://www.npmjs.com/package/react-faststart"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={\`block px-8 py-4 text-lg font-semibold rounded-full shadow-lg transition-transform duration-300 hover:scale-105 \${
+            darkMode
+              ? "bg-blue-600 text-gray-100 hover:bg-blue-700"
+              : "bg-blue-500 text-white hover:bg-blue-600"
+          }\`}
+        >
+          Get Started
+        </a>
+        <div className={\`rounded-lg shadow-xl p-8 transition-all duration-500 \${
+          darkMode ? "bg-gray-800 text-gray-300" : "bg-white text-gray-700"
+        }\`}>
+          <h2 className="text-3xl font-bold mb-4">Why React FastStart?</h2>
+          <ul className="list-disc pl-5 space-y-2">
+            <li>Quickly scaffold new projects with React and Tailwind CSS.</li>
+            <li>Supports light and dark mode toggling out of the box.</li>
+            <li>Optimized for developer productivity and customization.</li>
+          </ul>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default App;
+`;
 
   console.log(
     `Resetting ${templateChoice === "react-ts" ? "App.tsx" : "App.jsx"}...`
